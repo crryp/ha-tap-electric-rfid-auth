@@ -1,0 +1,12 @@
+{
+  "domain": "tap_electric_rfid_auth",
+  "name": "Tap Electric RFID Auth",
+  "codeowners": ["@crryp"],
+  "config_flow": true,
+  "documentation": "https://github.com/crryp/ha-tap-electric-rfid-auth",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/crryp/ha-tap-electric-rfid-auth/issues",
+  "requirements": [],
+  "version": "1.0.2"
+}

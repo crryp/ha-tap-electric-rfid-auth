@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Run ruff - directly if it's already on PATH (e.g. inside the "dev"
+# devcontainer, where postCreateCommand installed it), otherwise via a
+# throwaway "dev" container so this also works with just Docker installed.
+set -euo pipefail
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if command -v ruff >/dev/null 2>&1; then
+  ruff check .
+else
+  docker compose -f .devcontainer/docker-compose.yml run --rm dev \
+    sh -c "pip install -q -r requirements_lint.txt && ruff check ."
+fi

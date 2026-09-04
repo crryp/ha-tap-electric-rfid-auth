@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# First-time setup: pull + start the dev Home Assistant instance and wait
+# until it responds. Works from any shell with Docker installed - VS Code /
+# Dev Containers are optional, not required.
+set -euo pipefail
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+echo "==> Starting Home Assistant (pulls a ~1GB image on first run, be patient)..."
+docker compose -f .devcontainer/docker-compose.yml up -d homeassistant
+
+echo "==> Waiting for Home Assistant to respond on http://localhost:8123 ..."
+up=false
+for _ in $(seq 1 60); do
+  if curl -fsS -o /dev/null "http://localhost:8123/"; then
+    up=true
+    break
+  fi
+  sleep 2
+done
+
+if [ "$up" != "true" ]; then
+  echo "Home Assistant did not come up in time - check logs with: scripts/logs"
+  exit 1
+fi
+
+cat <<'EOF'
+
+Home Assistant is up: http://localhost:8123
+
+First time here? Complete onboarding in the browser (create an admin
+account - it's a throwaway local dev instance), then:
+  Settings -> Devices & Services -> Add integration -> "Tap Electric RFID Auth"
+  (you'll need a real Tap Electric API key)
+
+Everyday commands:
+  scripts/restart   restart Home Assistant after changing integration code
+  scripts/logs      tail Home Assistant logs
+  scripts/lint      run ruff
+  scripts/test      run pytest
+  scripts/stop      stop the containers (keeps config/ + onboarding state)
+EOF

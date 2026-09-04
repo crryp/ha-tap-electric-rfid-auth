@@ -1,0 +1,25 @@
+services:
+  # Lightweight container the VS Code Dev Containers extension attaches to.
+  # Shares its network with the "homeassistant" service so http://localhost:8123
+  # is reachable from inside the devcontainer as well.
+  dev:
+    image: mcr.microsoft.com/devcontainers/python:1-3.13-bookworm
+    volumes:
+      - ..:/workspace:cached
+    working_dir: /workspace
+    command: sleep infinity
+    network_mode: service:homeassistant
+    depends_on:
+      - homeassistant
+
+  # The actual Home Assistant instance used for manual/integration testing.
+  # custom_components is bind-mounted straight from the repo so changes are
+  # picked up on a Home Assistant restart without any copying/symlinking.
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    volumes:
+      - ../config:/config
+      - ../custom_components:/config/custom_components
+    ports:
+      - "8123:8123"
+    restart: unless-stopped

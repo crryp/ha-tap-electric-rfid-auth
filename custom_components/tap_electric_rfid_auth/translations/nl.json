@@ -1,0 +1,95 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Verbind met je Tap Electric account. Alle chargers op dit account worden automatisch toegevoegd als apparaat.",
+        "data": {
+          "api_key": "API key"
+        }
+      },
+      "reconfigure": {
+        "description": "Werk de Tap Electric API key bij.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken",
+      "invalid_auth": "Ongeldige API key",
+      "unknown": "Onverwachte fout"
+    },
+    "abort": {
+      "reconfigure_successful": "API key bijgewerkt"
+    }
+  },
+  "config_subentries": {
+    "charger": {
+      "entry_type": "Charger",
+      "initiate_flow": {
+        "user": "Charger toevoegen",
+        "reconfigure": "Charger herconfigureren"
+      },
+      "step": {
+        "user": {
+          "title": "Charger koppelen",
+          "description": "Kies een charger uit je Tap Electric account en stel optioneel direct de RFID-tag in.",
+          "data": {
+            "charger_id": "Charger",
+            "rfid": "RFID tag (hex)"
+          }
+        },
+        "reconfigure": {
+          "title": "RFID-tag aanpassen",
+          "description": "Deze RFID-tag (hex) wordt gebruikt om een sessie op deze charger te autoriseren.",
+          "data": {
+            "rfid": "RFID tag (hex)"
+          }
+        }
+      },
+      "abort": {
+        "cannot_connect": "Kan geen verbinding maken met de Tap Electric API",
+        "no_chargers_available": "Alle chargers in je account zijn al gekoppeld",
+        "reconfigure_successful": "RFID-tag bijgewerkt"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_session": {
+        "name": "Lopende sessie"
+      },
+      "current_session_kwh": {
+        "name": "Lopende sessie (kWh)"
+      },
+      "last_session": {
+        "name": "Laatste sessie"
+      },
+      "last_session_kwh": {
+        "name": "Laatste sessie (kWh)"
+      },
+      "session_duration": {
+        "name": "Lopende sessieduur"
+      },
+      "last_session_duration": {
+        "name": "Laatste sessieduur"
+      }
+    },
+    "binary_sensor": {
+      "online": {
+        "name": "Online"
+      },
+      "active_session": {
+        "name": "Actieve sessie"
+      }
+    },
+    "button": {
+      "authorize_session": {
+        "name": "Autoriseer sessie"
+      },
+      "stop_session": {
+        "name": "Stop sessie"
+      }
+    }
+  }
+}

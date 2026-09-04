@@ -1,0 +1,95 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Connect to your Tap Electric account. Every charger on this account is added automatically as a device.",
+        "data": {
+          "api_key": "API key"
+        }
+      },
+      "reconfigure": {
+        "description": "Update the Tap Electric API key.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid API key",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "reconfigure_successful": "API key updated"
+    }
+  },
+  "config_subentries": {
+    "charger": {
+      "entry_type": "Charger",
+      "initiate_flow": {
+        "user": "Add charger",
+        "reconfigure": "Reconfigure charger"
+      },
+      "step": {
+        "user": {
+          "title": "Link a charger",
+          "description": "Pick a charger from your Tap Electric account, and optionally set its RFID tag right away.",
+          "data": {
+            "charger_id": "Charger",
+            "rfid": "RFID tag (hex)"
+          }
+        },
+        "reconfigure": {
+          "title": "Update RFID tag",
+          "description": "This RFID tag (hex) is used to authorize a session on this charger.",
+          "data": {
+            "rfid": "RFID tag (hex)"
+          }
+        }
+      },
+      "abort": {
+        "cannot_connect": "Failed to connect to the Tap Electric API",
+        "no_chargers_available": "Every charger on your account is already linked",
+        "reconfigure_successful": "RFID tag updated"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_session": {
+        "name": "Current session"
+      },
+      "current_session_kwh": {
+        "name": "Current session (kWh)"
+      },
+      "last_session": {
+        "name": "Last session"
+      },
+      "last_session_kwh": {
+        "name": "Last session (kWh)"
+      },
+      "session_duration": {
+        "name": "Current session duration"
+      },
+      "last_session_duration": {
+        "name": "Last session duration"
+      }
+    },
+    "binary_sensor": {
+      "online": {
+        "name": "Online"
+      },
+      "active_session": {
+        "name": "Active session"
+      }
+    },
+    "button": {
+      "authorize_session": {
+        "name": "Authorize session"
+      },
+      "stop_session": {
+        "name": "Stop session"
+      }
+    }
+  }
+}

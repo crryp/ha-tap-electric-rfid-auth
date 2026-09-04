@@ -1,0 +1,10 @@
+# Minimal configuration for the dev/test Home Assistant instance.
+# The integration itself is configured via the UI (Settings > Devices &
+# Services > Add integration), it does not need YAML config.
+
+default_config:
+
+logger:
+  default: info
+  logs:
+    custom_components.tap_electric_rfid_auth: debug

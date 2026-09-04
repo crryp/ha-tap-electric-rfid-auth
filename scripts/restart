@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Restart Home Assistant to pick up custom_components changes.
+set -euo pipefail
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+docker compose -f .devcontainer/docker-compose.yml restart homeassistant
+echo "Restarted. Tail logs with: scripts/logs"
