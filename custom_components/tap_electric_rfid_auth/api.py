@@ -99,7 +99,13 @@ class TapElectricApiClient:
         )
 
     async def async_authorize_session(self, charger_id: str, id_tag: str) -> Any:
-        """Authorize (and start) a charging session on a charger via its RFID idTag."""
+        """Authorize (and start) a charging session on a charger via its RFID idTag.
+
+        The /ocpp proxy answers a bare HTTP 200 without body: it only means
+        Tap Electric accepted the command, not that the charger did. The
+        actual session shows up in /charger-sessions later, once the charger
+        sends its StartTransaction (car connected and ready).
+        """
         return await self.async_send_ocpp_command(
             charger_id, "RemoteStartTransaction", {"idTag": id_tag}
         )

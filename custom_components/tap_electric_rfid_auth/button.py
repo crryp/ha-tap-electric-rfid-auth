@@ -21,12 +21,6 @@ from .entity import TapElectricChargerEntity
 
 _LOGGER = logging.getLogger(__name__)
 
-# Tap Electric's backend needs a moment (an OCPP round-trip to the charger)
-# to reflect an authorize/stop call in /api/v1/charger-sessions. Poll again
-# after this delay rather than waiting for the next regular (1h) update.
-POLL_AFTER_AUTHORIZE = 15
-POLL_AFTER_STOP = 15
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -61,18 +55,24 @@ class TapElectricAuthorizeButton(TapElectricChargerEntity, ButtonEntity):
 
     @property
     def available(self) -> bool:
-        """Disable the button in the UI while a session is already running.
+        """Disable the button in the UI while a session is running or pending.
 
         Mirror image of the stop button: you can't authorize a new session
-        on a charger that already has one active.
+        on a charger that already has one active - nor while a previous
+        authorize is still waiting for its session to show up, since that
+        would just send a second RemoteStartTransaction for the same car.
         """
-        return super().available and self.active_session is None
+        return super().available and self.active_session is None and not self.action_pending
 
     async def async_press(self) -> None:
         """Trigger an authorize call for this charger."""
         if self.active_session is not None:
             raise HomeAssistantError(
                 "Er loopt al een sessie op deze charger; stop die eerst."
+            )
+        if self.action_pending:
+            raise HomeAssistantError(
+                "Er is net al een sessie geautoriseerd; wacht tot die zichtbaar wordt."
             )
         rfid = self.subentry.data.get(CONF_RFID)
         if not rfid:
@@ -85,8 +85,11 @@ class TapElectricAuthorizeButton(TapElectricChargerEntity, ButtonEntity):
         except TapElectricApiError as err:
             raise HomeAssistantError(f"Autoriseren van sessie mislukt: {err}") from err
 
-        await self.coordinator.async_request_refresh()
-        self._schedule_delayed_refresh(POLL_AFTER_AUTHORIZE)
+        # The session only appears once the charger actually starts it (car
+        # connected and ready), which can take minutes - not just one poll.
+        await self._async_poll_after_action(
+            lambda: self.active_session is not None, "Authorized session"
+        )
 
 
 class TapElectricStopButton(TapElectricChargerEntity, ButtonEntity):
@@ -101,14 +104,24 @@ class TapElectricStopButton(TapElectricChargerEntity, ButtonEntity):
 
     @property
     def available(self) -> bool:
-        """Disable the button in the UI while there is no active session."""
-        return super().available and self.active_session is not None
+        """Disable the button in the UI while there is no active session.
+
+        Also while a previous stop is still waiting to show up, so it isn't
+        sent twice for the same session.
+        """
+        return (
+            super().available and self.active_session is not None and not self.action_pending
+        )
 
     async def async_press(self) -> None:
         """Trigger a remote-stop call for this charger's active session."""
         session = self.active_session
         if not session:
             raise HomeAssistantError("Geen actieve sessie gevonden om te stoppen.")
+        if self.action_pending:
+            raise HomeAssistantError(
+                "De sessie wordt al gestopt; wacht tot dat zichtbaar wordt."
+            )
         try:
             await self._client.async_stop_session(
                 self.charger_id,
@@ -118,5 +131,10 @@ class TapElectricStopButton(TapElectricChargerEntity, ButtonEntity):
         except TapElectricApiError as err:
             raise HomeAssistantError(f"Stoppen van sessie mislukt: {err}") from err
 
-        await self.coordinator.async_request_refresh()
-        self._schedule_delayed_refresh(POLL_AFTER_STOP)
+        session_id = session["id"]
+        await self._async_poll_after_action(
+            lambda: not any(
+                s["id"] == session_id and s.get("endedAt") is None for s in self.sessions
+            ),
+            "Stopped session",
+        )

@@ -84,8 +84,12 @@ against a real charger.
 - Update your API key at any time without removing/re-adding the integration
 - Checks for updates in the background every **hour** normally, every **10
   minutes** while a session is active so things stay reasonably fresh while
-  charging; pressing Authorize or Stop refreshes immediately (twice, a few
-  seconds apart, to make sure the change has landed)
+  charging
+- After pressing **Authorize** or **Stop**, keeps checking every 15 seconds
+  (for up to 3 minutes) until the change shows up - the charger only reports
+  a new session once the car is connected and actually starts, which can
+  take a while. The button is greyed out during that time, so an automation
+  can't accidentally send the same command twice
 - Diagnostics download with your API key redacted
 
 ## Installation (HACS)

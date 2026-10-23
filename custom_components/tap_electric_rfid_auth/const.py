@@ -15,7 +15,7 @@ CONF_RFID: Final = "rfid"
 SUBENTRY_TYPE_CHARGER: Final = "charger"
 
 # Background polling interval. Actions (authorize/stop) trigger their own
-# immediate (+ delayed, see button.py) refresh, so this is just for picking
+# refreshes (see ACTION_POLL_* below), so this is just for picking
 # up changes made elsewhere (e.g. a session started via a physical RFID
 # card) - hourly is plenty and keeps load on the Tap Electric API low.
 DEFAULT_SCAN_INTERVAL: Final = 3600  # seconds
@@ -25,3 +25,11 @@ DEFAULT_SCAN_INTERVAL: Final = 3600  # seconds
 ACTIVE_SESSION_SCAN_INTERVAL: Final = 600  # seconds (10 minutes)
 
 DEFAULT_TIMEOUT: Final = 10  # seconds
+
+# After an authorize/stop, its effect only shows up in /charger-sessions once
+# the charger reports back (StartTransaction/StopTransaction) - which can take
+# anywhere from seconds to a few minutes, e.g. while the car is still
+# negotiating. Keep polling at this interval until the change shows up,
+# giving up after the timeout.
+ACTION_POLL_INTERVAL: Final = 15  # seconds
+ACTION_POLL_TIMEOUT: Final = 180  # seconds
