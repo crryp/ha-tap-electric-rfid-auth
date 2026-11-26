@@ -26,7 +26,7 @@ from typing import Any
 
 import aiohttp
 
-from .const import API_BASE_URL, DEFAULT_TIMEOUT
+from .const import API_BASE_URL, DEFAULT_TIMEOUT, OCPP_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,12 +48,14 @@ class TapElectricApiClient:
         session: aiohttp.ClientSession,
         base_url: str = API_BASE_URL,
         timeout: int = DEFAULT_TIMEOUT,
+        ocpp_timeout: int = OCPP_TIMEOUT,
     ) -> None:
         """Initialize the API client."""
         self._api_key = api_key
         self._session = session
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout
+        self._ocpp_timeout = ocpp_timeout
 
     # -- read endpoints -----------------------------------------------------
 
@@ -95,7 +97,10 @@ class TapElectricApiClient:
             "data": json.dumps(data),
         }
         return await self._request(
-            "POST", f"/api/v1/chargers/{charger_id}/ocpp", json=payload
+            "POST",
+            f"/api/v1/chargers/{charger_id}/ocpp",
+            json=payload,
+            timeout=self._ocpp_timeout,
         )
 
     async def async_authorize_session(self, charger_id: str, id_tag: str) -> Any:
@@ -142,13 +147,17 @@ class TapElectricApiClient:
     # -- internals ------------------------------------------------------------
 
     async def _request(
-        self, method: str, path: str, json: dict[str, Any] | None = None
+        self,
+        method: str,
+        path: str,
+        json: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> Any:
         url = f"{self._base_url}{path}"
         headers = {"X-Api-Key": self._api_key}
 
         try:
-            async with asyncio.timeout(self._timeout):
+            async with asyncio.timeout(timeout if timeout is not None else self._timeout):
                 response = await self._session.request(
                     method, url, headers=headers, json=json
                 )
@@ -162,5 +171,7 @@ class TapElectricApiClient:
                 return await response.text()
         except TapElectricAuthError:
             raise
-        except (TimeoutError, aiohttp.ClientError) as err:
+        except TimeoutError as err:
+            raise TapElectricApiError(f"Timeout communicating with {url}") from err
+        except aiohttp.ClientError as err:
             raise TapElectricApiError(f"Error communicating with {url}: {err}") from err

@@ -26,6 +26,12 @@ ACTIVE_SESSION_SCAN_INTERVAL: Final = 600  # seconds (10 minutes)
 
 DEFAULT_TIMEOUT: Final = 10  # seconds
 
+# The /ocpp proxy only answers once the charger has replied to the command,
+# which right after plugging in can easily take longer than DEFAULT_TIMEOUT
+# (seen in practice: RemoteStartTransaction timing out at 10s, while a retry
+# a minute later succeeded instantly). Give OCPP commands more room.
+OCPP_TIMEOUT: Final = 30  # seconds
+
 # After an authorize/stop, its effect only shows up in /charger-sessions once
 # the charger reports back (StartTransaction/StopTransaction) - which can take
 # anywhere from seconds to a few minutes, e.g. while the car is still
